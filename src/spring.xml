@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ 
+  <beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-2.0.xsd">
+  
+
+	<bean class="org.apache.commons.dbcp.BasicDataSource" id="dataSource">
+		<property name="driverClassName" value="com.mysql.jdbc.Driver"></property>
+		<property name="url" value="jdbc:mysql://localhost:3306/DAVDB"></property>
+		<property name="username" value="root"></property>
+		<property name="password" value="root"></property>
+		<property name="initialSize" value="2"></property>
+		<property name="maxActive" value="5"></property>
+	</bean>
+
+	<tx:advice id="txAdvice" transaction-manager="transactionManager">
+		<tx:attributes>
+		<tx:method name="get*" read-only="true" />
+            <tx:method name="*" isolation="SERIALIZABLE" />
+		</tx:attributes>
+	</tx:advice>
+
+	<aop:config>
+		<aop:pointcut
+			expression="execution(* com.dineshonjava.sdnext.dao.impl.EmployeeDaoImpl.*(..)) and within(com.dineshonjava.sdnext.dao.impl..*)"
+			id="createOperation"></aop:pointcut>
+		<aop:advisor advice-ref="txAdvice" pointcut-ref="createOperation"></aop:advisor>
+	</aop:config>
+
+	<!-- Initialization for TransactionManager -->
+	<bean
+		class="org.springframework.jdbc.datasource.DataSourceTransactionManager"
+		id="transactionManager">
+		<property name="dataSource" ref="dataSource"></property>
+	</bean>
+
+	<bean class="com.dineshonjava.sdnext.dao.impl.EmployeeDaoImpl" id="employeeDaoImpl">
+		<property name="dataSource" ref="dataSource"></property>
+	</bean>
+</beans>
